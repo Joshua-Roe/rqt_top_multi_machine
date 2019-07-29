@@ -33,10 +33,14 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QLabel, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QCheckBox, QWidget, QToolBar, QLineEdit, QPushButton
 from python_qt_binding.QtCore import Qt, QTimer
 
-from rqt_top_multi_machine.node_info import NodeInfo
+#from rqt_top_multi_machine.node_info import NodeInfo
 import re
 from threading import RLock
 import textwrap
+
+import rospy
+from diagnostic_msgs.msg import KeyValue
+import json
 
 
 class Top_Multi_MachineWidgetItem(QTreeWidgetItem):
@@ -61,11 +65,15 @@ class Top_Multi_Machine(Plugin):
         3: ('memory_info', lambda x: ('Resident: %0.2f MiB, Virtual: %0.2f MiB' % (x[0] / 2**20, x[1] / 2**20)))
     }
 
-    _node_info = NodeInfo()
+    #_node_info = NodeInfo()
 
     name_filter = re.compile('')
 
     def __init__(self, context):
+
+        self.sub = rospy.Subscriber("/node_info", KeyValue, self.callback)
+        self.infos = None
+
         super(Top_Multi_Machine, self).__init__(context)
         # Give QObjects reasonable names
         self.setObjectName('Top_Multi_Machine')
@@ -147,7 +155,8 @@ class Top_Multi_Machine(Plugin):
         self.update_table()
 
     def _kill_node(self):
-        self._node_info.kill_node(self._selected_node)
+        #self._node_info.kill_node(self._selected_node)
+        print("currently disabled")
 
     def update_one_item(self, row, info):
         twi = Top_Multi_MachineWidgetItem()
@@ -167,7 +176,8 @@ class Top_Multi_Machine(Plugin):
 
     def update_table(self):
         self._table_widget.clear()
-        infos = self._node_info.get_all_node_fields(self.NODE_FIELDS)
+        while self.infos == None: print('waiting')
+        infos = self.infos
         for nx, info in enumerate(infos):
             self.update_one_item(nx, info)
 
@@ -190,3 +200,8 @@ class Top_Multi_Machine(Plugin):
     # def trigger_configuration(self):
         # Comment in to signal that the plugin has a way to configure it
         # Usually used to open a configuration dialog
+
+    def callback(self, data):
+        print('callback')
+        machine = data.key
+        self.infos = json.loads(data.value)

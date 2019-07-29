@@ -33,6 +33,8 @@ except ImportError:
     from xmlrpclib import ServerProxy
 from socket import error as SocketError
 import psutil
+from diagnostic_msgs.msg import KeyValue
+import json
 
 ID = '/NODEINFO'
 
@@ -130,3 +132,17 @@ class NodeInfo(object):
                     name = 'cwd'
             retdict[name] = ret
         return retdict
+
+rospy.init_node('node_info_server')
+info_pub = rospy.Publisher('/node_info', KeyValue, queue_size=10) #create publisher for topic
+rate = rospy.Rate(1) # run at 5 Hz
+_node_info = NodeInfo()
+INFOmsg = KeyValue()
+while not rospy.is_shutdown():
+    fields = [ 'pid', 'get_cpu_percent', 'get_memory_percent', 'get_num_threads']
+    infos = _node_info.get_all_node_fields(fields)
+    machine = rospy.get_node_uri().partition("http://")[2].partition(":")[0]
+    INFOmsg.key = machine
+    INFOmsg.value = json.dumps(infos)
+    info_pub.publish(INFOmsg)
+    rate.sleep()
