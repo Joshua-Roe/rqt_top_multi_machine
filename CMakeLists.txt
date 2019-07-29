@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rqt_top)
+project(rqt_top_multi_machine)
 # Load catkin and all dependencies required for this package
 #find_package(catkin REQUIRED COMPONENTS python-psutil)
 find_package(catkin REQUIRED)
@@ -10,6 +10,6 @@ install(FILES plugin.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(PROGRAMS scripts/rqt_top
+install(PROGRAMS scripts/rqt_top_multi_machine
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

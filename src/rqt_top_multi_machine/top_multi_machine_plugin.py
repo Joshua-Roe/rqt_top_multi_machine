@@ -33,24 +33,24 @@ from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QLabel, QTreeWidget, QTreeWidgetItem, QVBoxLayout, QCheckBox, QWidget, QToolBar, QLineEdit, QPushButton
 from python_qt_binding.QtCore import Qt, QTimer
 
-from rqt_top.node_info import NodeInfo
+from rqt_top_multi_machine.node_info import NodeInfo
 import re
 from threading import RLock
 import textwrap
 
 
-class TopWidgetItem(QTreeWidgetItem):
+class Top_Multi_MachineWidgetItem(QTreeWidgetItem):
 
     def __init__(self, parent=None):
-        super(TopWidgetItem, self).__init__(parent)
+        super(Top_Multi_MachineWidgetItem, self).__init__(parent)
 
     def __lt__(self, other):
         col = self.treeWidget().sortColumn()
-        dtype = Top.SORT_TYPE[col]
+        dtype = Top_Multi_Machine.SORT_TYPE[col]
         return dtype(self.text(col)) < dtype(other.text(col))
 
 
-class Top(Plugin):
+class Top_Multi_Machine(Plugin):
     NODE_FIELDS   = [             'pid', 'get_cpu_percent', 'get_memory_percent', 'get_num_threads']
     OUT_FIELDS    = ['node_name', 'pid', 'cpu_percent',     'memory_percent',     'num_threads'    ]
     FORMAT_STRS   = ['%s',        '%s',  '%0.2f',           '%0.2f',              '%s'             ]
@@ -66,9 +66,9 @@ class Top(Plugin):
     name_filter = re.compile('')
 
     def __init__(self, context):
-        super(Top, self).__init__(context)
+        super(Top_Multi_Machine, self).__init__(context)
         # Give QObjects reasonable names
-        self.setObjectName('Top')
+        self.setObjectName('Top_Multi_Machine')
 
         # Process standalone plugin command-line arguments
         from argparse import ArgumentParser
@@ -107,7 +107,7 @@ class Top(Plugin):
 
         # Create the table widget
         self._table_widget = QTreeWidget()
-        self._table_widget.setObjectName('TopTable')
+        self._table_widget.setObjectName('Top_Multi_MachineTable')
         self._table_widget.setColumnCount(len(self.NODE_LABELS))
         self._table_widget.setHeaderLabels(self.NODE_LABELS)
         self._table_widget.itemClicked.connect(self._tableItemClicked)
@@ -150,7 +150,7 @@ class Top(Plugin):
         self._node_info.kill_node(self._selected_node)
 
     def update_one_item(self, row, info):
-        twi = TopWidgetItem()
+        twi = Top_Multi_MachineWidgetItem()
         for col, field in enumerate(self.OUT_FIELDS):
             val = info[field]
             twi.setText(col, self.FORMAT_STRS[col] % val)

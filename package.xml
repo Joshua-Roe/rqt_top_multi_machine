@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <package>
-  <name>rqt_top</name>
+  <name>rqt_top_multi_machine</name>
   <version>0.4.8</version>
   <description>RQT plugin for monitoring ROS processes.</description>
 
-  <author email="dan@lazewatsky.com">Dan Lazewatsky</author>
-  <maintainer email="dan@lazewatsky.com">Dan Lazewatsky</maintainer>
+  <author email="todo@todo.com">Joshua Roe</author>
+  <maintainer email="todo@todo.com">Joshua Roe</maintainer>
   <license>BSD</license>
 
   <url type="website">http://wiki.ros.org/rqt_top</url>
-  <url type="repository">https://github.com/ros-visualization/rqt_top</url>
-  <url type="bugtracker">https://github.com/ros-visualization/rqt_top/issues</url>
+  <url type="repository">https://github.com/Joshua-Roe/rqt_top_multi_machine</url>
+  <url type="bugtracker">https://github.com/Joshua-Roe/rqt_top_multi_machine/issues</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 

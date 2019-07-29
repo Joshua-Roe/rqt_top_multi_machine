@@ -1,5 +1,5 @@
 <library path="src">
-  <class name="TOP" type="rqt_top.top_plugin.Top" base_class_type="rqt_gui_py::Plugin">
+  <class name="TOP_MULTI_MACHINE" type="rqt_top_multi_machine.top_multi_machine_plugin.Top_Multi_Machine" base_class_type="rqt_gui_py::Plugin">
     <description>
       Provides information similar to that provided in UNIX top for running ROS nodes.
     </description>
@@ -9,7 +9,7 @@
         <icon type="theme">folder</icon>
         <statustip>Plugins related to introspection.</statustip>
       </group>
-      <label>Process Monitor</label>
+      <label>Process Monitor Multi Machine</label>
       <icon type="theme">utilities-system-monitor</icon> 
       <statustip>A Python GUI plugin for viewing process information about running ROS processes.</statustip>
     </qtgui>
