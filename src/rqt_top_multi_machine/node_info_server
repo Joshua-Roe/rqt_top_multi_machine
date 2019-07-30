@@ -136,7 +136,7 @@ class NodeInfo(object):
             retdict[name] = ret
         return retdict
 
-rospy.init_node('node_info_server')
+rospy.init_node('node_info_server', anonymous=True)
 info_pub = rospy.Publisher('/node_info', KeyValue, queue_size=10) #create publisher for topic
 rate = rospy.Rate(1) # run at 5 Hz
 _node_info = NodeInfo()
