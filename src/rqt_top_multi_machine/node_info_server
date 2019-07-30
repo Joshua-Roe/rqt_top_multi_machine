@@ -138,7 +138,7 @@ class NodeInfo(object):
 
 rospy.init_node('node_info_server', anonymous=True)
 info_pub = rospy.Publisher('/node_info', KeyValue, queue_size=10) #create publisher for topic
-rate = rospy.Rate(1) # run at 5 Hz
+rate = rospy.Rate(1) # run at 1 Hz
 _node_info = NodeInfo()
 INFOmsg = KeyValue()
 while not rospy.is_shutdown():

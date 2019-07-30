@@ -58,11 +58,11 @@ class Top_Multi_MachineWidgetItem(QTreeWidgetItem):
 
 
 class Top_Multi_Machine(Plugin):
-    NODE_FIELDS   = [             'pid', 'get_cpu_percent', 'get_memory_percent', 'get_num_threads']
-    OUT_FIELDS    = ['node_name', 'pid', 'cpu_percent',     'memory_percent',     'num_threads'    ]
-    FORMAT_STRS   = ['%s',        '%s',  '%0.2f',           '%0.2f',              '%s'             ]
-    NODE_LABELS   = ['Node',      'PID', 'CPU %',           'Mem %',              'Num Threads'    ]
-    SORT_TYPE     = [str,         str,   float,             float,                float            ]
+    NODE_FIELDS   = [                        'pid', 'get_cpu_percent', 'get_memory_percent', 'get_num_threads']
+    OUT_FIELDS    = ['node_name', 'machine', 'pid', 'cpu_percent',     'memory_percent',     'num_threads'    ]
+    FORMAT_STRS   = ['%s',        '%s',      '%s',  '%0.2f',           '%0.2f',              '%s'             ]
+    NODE_LABELS   = ['Node',      'Machine', 'PID', 'CPU %',           'Mem %',              'Num Threads'    ]
+    SORT_TYPE     = [str,         str,       str,   float,             float,                float            ]
     TOOLTIPS = {
         0: ('cmdline', lambda x: '\n'.join(textwrap.wrap(' '.join(x)))),
         3: ('memory_info', lambda x: ('Resident: %0.2f MiB, Virtual: %0.2f MiB' % (x[0] / 2**20, x[1] / 2**20)))
@@ -74,8 +74,8 @@ class Top_Multi_Machine(Plugin):
 
     def __init__(self, context):
 
-        self.sub = rospy.Subscriber("/node_info", KeyValue, self.callback)
-        self.infos = None
+        self.sub = rospy.Subscriber("/node_info", KeyValue, self.callback, queue_size=2)
+        self.infos = {}
 
         super(Top_Multi_Machine, self).__init__(context)
         # Give QObjects reasonable names
@@ -98,14 +98,19 @@ class Top_Multi_Machine(Plugin):
 
         # Setup the toolbar
         self._toolbar = QToolBar()
-        self._filter_box = QLineEdit()
+        self._name_filter_box = QLineEdit()
+        self._name_filter_box.setPlaceholderText('Filter By Name')
+        self._machine_filter_box = QLineEdit()
+        self._machine_filter_box.setPlaceholderText('Filter By Machine')
         self._regex_box = QCheckBox()
         self._regex_box.setText('regex')
         self._toolbar.addWidget(QLabel('Filter'))
-        self._toolbar.addWidget(self._filter_box)
+        self._toolbar.addWidget(self._name_filter_box)
+        self._toolbar.addWidget(self._machine_filter_box)
         self._toolbar.addWidget(self._regex_box)
 
-        self._filter_box.returnPressed.connect(self.update_filter)
+        self._name_filter_box.returnPressed.connect(self.update_filter)
+        self._machine_filter_box.returnPressed.connect(self.update_filter)
         self._regex_box.stateChanged.connect(self.update_filter)
 
         # Create a container widget and give it a layout
@@ -129,9 +134,9 @@ class Top_Multi_Machine(Plugin):
         context.add_widget(self._container)
 
         # Add a button for killing nodes
-        self._kill_button = QPushButton('Kill Node')
-        self._layout.addWidget(self._kill_button)
-        self._kill_button.clicked.connect(self._kill_node)
+        #self._kill_button = QPushButton('Kill Node')
+        #self._layout.addWidget(self._kill_button)
+        #self._kill_button.clicked.connect(self._kill_node)
 
         # Update twice since the first cpu% lookup will always return 0
         self.update_table()
@@ -141,9 +146,11 @@ class Top_Multi_Machine(Plugin):
 
         # Start a timer to trigger updates
         self._update_timer = QTimer()
-        self._update_timer.setInterval(1000)
+        self._update_timer.setInterval(2000) #changed to 2 seconds
         self._update_timer.timeout.connect(self.update_table)
         self._update_timer.start()
+
+
 
     def _tableItemClicked(self, item, column):
         with self._selected_node_lock:
@@ -151,10 +158,14 @@ class Top_Multi_Machine(Plugin):
 
     def update_filter(self, *args):
         if self._regex_box.isChecked():
-            expr = self._filter_box.text()
+            expr = self._name_filter_box.text()
         else:
-            expr = re.escape(self._filter_box.text())
+            expr = re.escape(self._name_filter_box.text())
         self.name_filter = re.compile(expr)
+
+        expr = re.escape(self._machine_filter_box.text())
+        self.machine_filter = re.compile(expr)
+
         self.update_table()
 
     def _kill_node(self):
@@ -176,23 +187,34 @@ class Top_Multi_Machine(Plugin):
                 twi.setSelected(True)
 
         twi.setHidden(len(self.name_filter.findall(info['node_name'])) == 0)
+        twi.setHidden(len(self.machine_filter.findall(info['machine'])) == 0)
 
     def update_table(self):
         self._table_widget.clear()
-        while self.infos == None: print('waiting')
-        infos = self.infos
-        for nx, info in enumerate(infos):
-            self.update_one_item(nx, info)
+        if len(self.infos) == 0:
+            print('No Servers Running')
+            return
+            #rospy.sleep(2)
+        all_infos = self.infos#.copy()
+        while len(all_infos) > 0:
+            infos = all_infos.popitem()
+            machine  = infos[0]
+            for nx, info in enumerate(infos[1]):
+                info['machine'] = machine
+                self.update_one_item(nx, info)
 
     def shutdown_plugin(self):
-        self._update_timer.stop()
+        print('bye')
+        #self._update_timer.stop()
 
     def save_settings(self, plugin_settings, instance_settings):
-        instance_settings.set_value('filter_text', self._filter_box.text())
+        instance_settings.set_value('name_filter_text', self._name_filter_box.text())
+        instance_settings.set_value('machine_filter_text', self._machine_filter_box.text())
         instance_settings.set_value('is_regex', int(self._regex_box.checkState()))
 
     def restore_settings(self, plugin_settings, instance_settings):
-        self._filter_box.setText(instance_settings.value('filter_text'))
+        self._name_filter_box.setText(instance_settings.value('name_filter_text'))
+        self._machine_filter_box.setText(instance_settings.value('machine_filter_text'))
         is_regex_int = instance_settings.value('is_regex')
         if is_regex_int:
             self._regex_box.setCheckState(Qt.CheckState(is_regex_int))
@@ -205,6 +227,5 @@ class Top_Multi_Machine(Plugin):
         # Usually used to open a configuration dialog
 
     def callback(self, data):
-        print('callback')
-        machine = data.key
-        self.infos = json.loads(data.value)
+        self.infos[data.key] = json.loads(data.value)
+        #self.update_table()
