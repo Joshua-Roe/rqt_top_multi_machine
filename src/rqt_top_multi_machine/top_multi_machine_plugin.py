@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # Copyright (c) 2013, Oregon State University
+# Modifications Copyright (c) 2019, Joshua Roe
+
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -25,6 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Author Dan Lazewatsky/lazewatd@engr.orst.edu
+# Modifications Author Joshua Roe
 
 from __future__ import division
 
